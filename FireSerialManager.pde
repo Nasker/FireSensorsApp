@@ -37,9 +37,9 @@ class FireSerialManager {
     sentData[1] = (byte)ID;
     sentData[2] = (byte)0xFF;
     serialPort.write(sentData);
-    print("Sending serial data: ");
+    /*print("Sending serial data: ");
     for(byte sentByte:sentData) print(sentByte+ " ");
-    println();
+    println();*/
   }
 
   private float byteArrayToFloat(int data[]) {

@@ -1,6 +1,6 @@
-class FireSensorUnit {
+class FireSensorUnit { //<>//
   int ID;
-  boolean active;
+  boolean timeOut;
   int timeOutLength = 10000;
   long lastTimeOut = 0;
   FloatList temperatureList;
@@ -20,20 +20,28 @@ class FireSensorUnit {
   float currentHumidity;
   PFont font;
 
-  public FireSensorUnit(PApplet parent, int ID) {
-    this.ID = ID; //<>//
-    active = false;
-    this.plotPosY = (this.ID-1) * plotSizeY;
+  public FireSensorUnit(int receivedID, int positionOnList) {
+    this.ID = receivedID + 1;
+    timeOut = false;
+    this.plotPosY = positionOnList * plotSizeY;
     //println("ID: "+ this.ID +" Drawing offset: "+ plotPosY);
     temperatureList = new FloatList();
     humidityList = new FloatList();
-    font = createFont("Arial.ttf", 25);
+    font = createFont("Arial.ttf", height*0.025);
     textFont(font);
+  }
+  
+  public int getID(){
+    return ID;
+  }
+  
+  public void setPositionOnList(int positionOnList){
+    this.plotPosY = positionOnList * plotSizeY;
   }
 
   public void update(FireSensData fsData) {
-    active = true;
     lastTimeOut = millis();
+    timeOut = false;
     temperatureList.append(fsData.temperature);
     humidityList.append(fsData.humidity);
     iteration++;
@@ -51,55 +59,48 @@ class FireSensorUnit {
 
   public void updateTimeOut() {
     if (millis() > lastTimeOut + timeOutLength) {
-      active = false;
+      timeOut = true;
     }
+    else timeOut = false;
   }
-
+  public boolean timeOut() {
+    return timeOut;
+  }
   public void displayPlotBackground() {
-    if (active) {
-      fill(56);
-      rect(plotPosX, plotPosY, plotSizeX, plotSizeY);
-    }
+    fill(56);
+    rect(plotPosX, plotPosY, plotSizeX, plotSizeY);
   }
 
   public void displayPlotLines() {
-    if (active) {
-      strokeWeight(2);
-      for (int i = 0; i < temperatureList.size(); i++) { 
-        stroke(tempColor);
-        int yTemp = calcValueHeight(temperatureList.get(i));
-        line(i+plotPosX, pyTemp, i+1+plotPosX, yTemp);
-        pyTemp = yTemp;
-        stroke(humColor);
-        int yHum = calcValueHeight(humidityList.get(i));
-        line(i+plotPosX, pyHum, i+1+plotPosX, yHum);
-        pyHum = yHum;
-      }
+    strokeWeight(2);
+    for (int i = 0; i < temperatureList.size(); i++) { 
+      stroke(tempColor);
+      int yTemp = calcValueHeight(temperatureList.get(i));
+      line(i+plotPosX, pyTemp, i+1+plotPosX, yTemp);
+      pyTemp = yTemp;
+      stroke(humColor);
+      int yHum = calcValueHeight(humidityList.get(i));
+      line(i+plotPosX, pyHum, i+1+plotPosX, yHum);
+      pyHum = yHum;
     }
   }
 
   public void displayPlotLayout() {
-    if (active) {
-      strokeWeight(2);
-      stroke(255);
-      noFill();
-      rect(plotPosX, plotPosY, plotSizeX, plotSizeY);
-    }
+    strokeWeight(2);
+    stroke(255);
+    noFill();
+    rect(plotPosX, plotPosY, plotSizeX, plotSizeY);
   }
 
   public void displayStatsText() {
-    if (active) {
-      fill(255);
-      text("ID: "+ID, width*0.04, plotPosY + plotSizeY*.5);
-      if (active) {
-        fill(tempColor);
-        String tempText = String.format("%.1f", currentTemperature);
-        text("T: "+tempText+"ºC", width*0.04, plotPosY + plotSizeY*.7);
-        fill(humColor);
-        String humText = String.format("%.1f", currentHumidity);
-        text("H: "+humText+"%", width*0.04, plotPosY + plotSizeY*.9);
-      }
-    }
+    fill(255);
+    text("ID: "+ID, width*0.04, plotPosY + plotSizeY*.5);
+      fill(tempColor);
+      String tempText = String.format("%.1f", currentTemperature);
+      text("T: "+tempText+"ºC", width*0.04, plotPosY + plotSizeY*.7);
+      fill(humColor);
+      String humText = String.format("%.1f", currentHumidity);
+      text("H: "+humText+"%", width*0.04, plotPosY + plotSizeY*.9);
   }
 
   private int calcValueHeight(float rawValue) {
